@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Clock Weather Card Preview</title>
+    <style>
+        body {
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: sans-serif;
+        }
+
+        .container {
+            width: 400px;
+        }
+    </style>
+    <!-- Mock Home Assistant dependencies -->
+    <script type="module">
+        console.log('Mocking HA components...');
+        if (!customElements.get('ha-icon')) {
+            customElements.define('ha-icon', class extends HTMLElement {
+                set icon(val) { this.innerText = val; }
+            });
+        }
+        if (!customElements.get('ha-card')) {
+            customElements.define('ha-card', class extends HTMLElement {
+                connectedCallback() {
+                    this.style.display = 'block';
+                    this.style.background = 'rgba(255, 255, 255, 0.1)';
+                    this.style.borderRadius = '24px';
+                    this.style.padding = '16px';
+                }
+            });
+        }
+    </script>
+    <script type="module" src="./dist/clock-weather-card.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <clock-weather-card id="weatherCard"></clock-weather-card>
+    </div>
+
+    <script type="module">
+        const card = document.getElementById('weatherCard');
+
+        console.log('Initializing mock data...');
+        // Mock Home Assistant Object
+        const hass = {
+            states: {
+                'weather.demo': {
+                    state: 'pouring',
+                    attributes: {
+                        temperature: 6.8,
+                        temperature_unit: '°C',
+                        humidity: 85,
+                        forecast: [
+                            { datetime: '2025-12-21T12:00:00Z', condition: 'rainy', temperature: 10, templow: 7 },
+                            { datetime: '2025-12-22T12:00:00Z', condition: 'pouring', temperature: 10, templow: 9 },
+                            { datetime: '2025-12-23T12:00:00Z', condition: 'cloudy', temperature: 10, templow: 6 },
+                            { datetime: '2025-12-24T12:00:00Z', condition: 'rainy', temperature: 8, templow: 6 }
+                        ],
+                        supported_features: 0 // Legacy
+                    }
+                },
+                'sun.sun': {
+                    state: 'above_horizon'
+                }
+            },
+            config: {
+                time_zone: 'UTC',
+                unit_system: {
+                    temperature: '°C'
+                }
+            },
+            locale: {
+                language: 'fr'
+            },
+            connection: {
+                subscribeMessage: (callback, message) => {
+                    console.log('Subscribed to forecast', message);
+                    return () => Promise.resolve();
+                }
+            }
+        };
+
+        const config = {
+            type: 'custom:clock-weather-card',
+            entity: 'weather.demo',
+            title: 'Météo',
+            sun_entity: 'sun.sun',
+            forecast_rows: 4
+        };
+
+        console.log('Waiting for clock-weather-card to be defined...');
+        customElements.whenDefined('clock-weather-card').then(() => {
+            console.log('clock-weather-card defined! Setting config and hass...');
+            try {
+                card.setConfig(config);
+                card.hass = hass;
+                console.log('Init complete.');
+            } catch (e) {
+                console.error('Error setting card config:', e);
+            }
+        }).catch(err => {
+            console.error('Failed to define clock-weather-card:', err);
+        });
+    </script>
+</body>
+
+</html>
