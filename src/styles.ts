@@ -93,84 +93,81 @@ export default css`
     to { transform: translateX(-50%); }
   }
 
-  /* Rainy - Corrected V4 (Vertical Streaks) */
-  .rainy {
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.1) 100%);
-  }
-  .rainy::before, .rainy::after {
-    content: '';
+  /* Rain Container - DOM Based */
+  .rain-container {
     position: absolute;
-    top: 0;
-    left: 0;
     width: 100%;
     height: 100%;
-    background-repeat: repeat;
-    animation: rain-fall-vertical 1s linear infinite;
-  }
-  /* Layer 1 - Mid Streaks */
-  .rainy::before {
-    background-image: 
-      linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.4) 50%, transparent);
-    background-size: 1px 120px;
-    animation-duration: 0.8s;
-    opacity: 0.4;
-  }
-  /* Layer 2 - Fast Streaks */
-  .rainy::after {
-    background-image: 
-      linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5) 50%, transparent);
-    background-size: 2px 160px;
-    animation-duration: 0.6s;
-    animation-delay: -0.2s;
-    opacity: 0.3;
+    z-index: 2;
+    pointer-events: none;
+    overflow: hidden;
   }
 
-  /* Pouring - Corrected V4 (Dense & Fast) */
-  .pouring {
-    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.3) 0%, rgba(0, 0, 0, 0.6) 100%);
-  }
-  .pouring::before, .pouring::after {
-    content: '';
+  /* Drop Wrapper */
+  .drop {
     position: absolute;
-    top: -50%;
-    left: -20%;
-    width: 140%;
-    height: 200%;
-    background-repeat: repeat;
-    transform: rotate(10deg);
-    animation: rain-fall-vertical 0.4s linear infinite;
-  }
-  /* Layer 1 - Dense Sheets */
-  .pouring::before {
-    background-image: 
-      linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.5) 40%, transparent);
-    background-size: 1px 140px;
-    opacity: 0.5;
-  }
-  /* Layer 2 - Driving Rain */
-  .pouring::after {
-    background-image: 
-      linear-gradient(to bottom, transparent, rgba(255, 255, 255, 0.7) 40%, transparent);
-    background-size: 2px 180px;
-    opacity: 0.6;
-    animation-duration: 0.3s;
-    animation-delay: -0.1s;
+    bottom: 100%;
+    width: 15px;
+    height: 120px;
+    pointer-events: none;
+    animation: drop-fall linear infinite;
   }
 
-  @keyframes rain-fall-vertical {
-    from { background-position: 0 0; }
-    to { background-position: 0 400px; }
-  }
-  @keyframes rain-wash {
-    0% { background-position: 0 0, 0 0, 0 0; }
-    100% { background-position: 0 100%, -100% 0, 100% 0; }
+  /* Stem - The falling water liquid */
+  .stem {
+    width: 1px;
+    height: 60%;
+    margin-left: 7px;
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5));
+    animation: stem-fade linear infinite;
   }
 
-  @keyframes wind-sheets {
-    0% { background-position: 0 0, 0 0; }
-    50% { background-position: 0 0, -50px 0; }
-    100% { background-position: 0 0, -100px 0; }
+  /* Splat - The impact at the bottom */
+  .splat {
+    width: 15px;
+    height: 10px;
+    border-top: 2px solid rgba(255, 255, 255, 0.8);
+    border-radius: 50%;
+    opacity: 1;
+    transform: scale(0);
+    animation: splat-scale linear infinite;
+    display: none; /* Hidden by default, shown by animation */
   }
+
+  /* Animations */
+  @keyframes drop-fall {
+    0% { bottom: 100%; transform: translateX(0); }
+    90% { bottom: 0; } /* Impact at 90% */
+    100% { bottom: -20px; } /* Fall through */
+  }
+
+  @keyframes stem-fade {
+    0% { opacity: 1; }
+    85% { opacity: 1; }
+    90% { opacity: 0; }
+    100% { opacity: 0; }
+  }
+
+  @keyframes splat-scale {
+    0% { opacity: 1; transform: scale(0); }
+    80% { opacity: 1; transform: scale(0); }
+    90% { opacity: 1; transform: scale(1); }
+    100% { opacity: 0; transform: scale(1.5); }
+  }
+
+  /* Pouring Modifier - Faster, Slanted */
+  .rain-container.pouring .drop {
+    transform: rotate(10deg); /* Slight wind angle for pouring */
+  }
+  .rain-container.pouring .stem {
+    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8)); /* Whiter */
+  }
+  
+  /* Ensure background clean */
+  .rainy, .pouring {
+    background: transparent;
+  }
+
 
   /* Lightning - Dramatic Non-linear Flashes */
   .lightning {

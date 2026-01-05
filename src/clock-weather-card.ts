@@ -168,7 +168,9 @@ export class ClockWeatherCard extends LitElement {
         tabindex="0"
         .label=${`Clock Weather Card: ${this.config.entity || 'No Entity Defined'}`}
       >
-        <div class="weather-animation ${animationClass}"></div>
+        <div class="weather-animation ${animationClass}">
+          ${(state === 'rainy' || state === 'pouring') ? this.renderRain(state) : ''}
+        </div>
         <div class="card-content">
           ${safeRender(() => this.renderToday())}
           ${showForecast
@@ -277,6 +279,27 @@ export class ClockWeatherCard extends LitElement {
         </div>
       </div>
     `
+  }
+
+  private renderRain(state: string): TemplateResult {
+    const dropCount = state === 'pouring' ? 60 : 20
+    const drops: TemplateResult[] = []
+
+    for (let i = 0; i < dropCount; i++) {
+      // Randomize delay (0-2s) and duration (0.5-1.5s) to desynchronize
+      const delay = (Math.random() * 2).toFixed(2)
+      const duration = (0.5 + Math.random()).toFixed(2)
+      const left = Math.floor(Math.random() * 100)
+
+      drops.push(html`
+          <div class="drop" style="left: ${left}%; animation-delay: ${delay}s; animation-duration: ${duration}s;">
+            <div class="stem" style="animation-delay: ${delay}s; animation-duration: ${duration}s;"></div>
+            <div class="splat" style="animation-delay: ${delay}s; animation-duration: ${duration}s;"></div>
+          </div>
+        `)
+    }
+
+    return html`<div class="rain-container ${state}">${drops}</div>`
   }
 
   // https://lit.dev/docs/components/styles/
