@@ -156,7 +156,7 @@ export class ClockWeatherCard extends LitElement {
     const showForecast = !this.config.hide_forecast_section
 
     // Determine background animation class
-    const animationClass = state === 'pouring' ? 'pouring-rain' : ''
+    const animationClass = this.getAnimationClass(state)
 
     return html`
       <ha-card
@@ -618,6 +618,31 @@ export class ClockWeatherCard extends LitElement {
       condition,
       precipitation_probability: precipitationProbability,
       precipitation
+    }
+  }
+
+  private getAnimationClass(state: string): string {
+    switch (state) {
+      case 'sunny':
+      case 'clear-night':
+        return 'sunny'
+      case 'cloudy':
+      case 'partlycloudy':
+        return 'cloudy'
+      case 'rainy':
+        return 'rainy'
+      case 'pouring':
+        return 'pouring'
+      case 'lightning':
+      case 'lightning-rainy':
+        return 'lightning'
+      case 'snowy':
+      case 'snowy-rainy':
+        return 'snowy'
+      case 'fog':
+        return 'fog'
+      default:
+        return ''
     }
   }
 

@@ -44,27 +44,44 @@
 
 <body>
     <div class="container">
+        <div style="margin-bottom: 20px; color: white;">
+            <label for="stateSelect">Weather State:</label>
+            <select id="stateSelect">
+                <option value="sunny" selected>Sunny</option>
+                <option value="clear-night">Clear Night</option>
+                <option value="cloudy">Cloudy</option>
+                <option value="partlycloudy">Partly Cloudy</option>
+                <option value="rainy">Rainy</option>
+                <option value="pouring">Pouring</option>
+                <option value="lightning">Lightning</option>
+                <option value="lightning-rainy">Lightning Rainy</option>
+                <option value="snowy">Snowy</option>
+                <option value="snowy-rainy">Snowy Rainy</option>
+                <option value="fog">Fog</option>
+            </select>
+        </div>
         <clock-weather-card id="weatherCard"></clock-weather-card>
     </div>
 
     <script type="module">
         const card = document.getElementById('weatherCard');
+        const stateSelect = document.getElementById('stateSelect');
 
         console.log('Initializing mock data...');
         // Mock Home Assistant Object
         const hass = {
             states: {
                 'weather.demo': {
-                    state: 'pouring',
+                    state: 'sunny',
                     attributes: {
-                        temperature: 6.8,
+                        temperature: 22.5,
                         temperature_unit: '°C',
-                        humidity: 85,
+                        humidity: 45,
                         forecast: [
-                            { datetime: '2025-12-21T12:00:00Z', condition: 'rainy', temperature: 10, templow: 7 },
-                            { datetime: '2025-12-22T12:00:00Z', condition: 'pouring', temperature: 10, templow: 9 },
-                            { datetime: '2025-12-23T12:00:00Z', condition: 'cloudy', temperature: 10, templow: 6 },
-                            { datetime: '2025-12-24T12:00:00Z', condition: 'rainy', temperature: 8, templow: 6 }
+                            { datetime: '2025-12-21T12:00:00Z', condition: 'sunny', temperature: 25, templow: 18 },
+                            { datetime: '2025-12-22T12:00:00Z', condition: 'cloudy', temperature: 22, templow: 16 },
+                            { datetime: '2025-12-23T12:00:00Z', condition: 'rainy', temperature: 19, templow: 14 },
+                            { datetime: '2025-12-24T12:00:00Z', condition: 'sunny', temperature: 24, templow: 17 }
                         ],
                         supported_features: 0 // Legacy
                     }
@@ -80,7 +97,7 @@
                 }
             },
             locale: {
-                language: 'fr'
+                language: 'en'
             },
             connection: {
                 subscribeMessage: (callback, message) => {
@@ -98,12 +115,17 @@
             forecast_rows: 4
         };
 
+        stateSelect.addEventListener('change', () => {
+            hass.states['weather.demo'].state = stateSelect.value;
+            card.hass = { ...hass }; // Trigger update
+        });
+
         console.log('Waiting for clock-weather-card to be defined...');
         customElements.whenDefined('clock-weather-card').then(() => {
             console.log('clock-weather-card defined! Setting config and hass...');
             try {
                 card.setConfig(config);
-                card.hass = hass;
+                card.hass = { ...hass };
                 console.log('Init complete.');
             } catch (e) {
                 console.error('Error setting card config:', e);
