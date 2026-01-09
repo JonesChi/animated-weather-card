@@ -80,11 +80,14 @@ export default css`
   .header-title {
     font-size: 1.5rem;
     font-weight: bold;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   }
 
   .header-status {
     font-size: 1rem;
-    opacity: 0.8;
+    opacity: 0.9;
+    font-weight: 500;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   }
 
   .header-right {
@@ -104,6 +107,7 @@ export default css`
     font-size: 2rem;
     font-weight: bold;
     line-height: 1;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   }
 
   .stat-icon {
@@ -114,7 +118,9 @@ export default css`
   .weather-stat.high-low {
     font-size: 0.9rem;
     gap: 0.3rem;
-    opacity: 0.8;
+    opacity: 0.9;
+    font-weight: 500;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   }
 
   .separator {
@@ -151,7 +157,9 @@ export default css`
 
   .forecast-day {
     font-size: 0.9rem;
-    opacity: 0.8;
+    opacity: 0.9;
+    font-weight: 500;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   }
 
   .forecast-icon {
@@ -168,6 +176,7 @@ export default css`
     align-items: center;
     font-size: 1rem;
     gap: 0.2rem;
+    text-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
   }
 
   .temp-high {
