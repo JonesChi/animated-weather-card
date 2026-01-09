@@ -3,12 +3,12 @@ import { type HassEntity } from 'home-assistant-js-websocket/dist/types'
 
 declare global {
   interface HTMLElementTagNameMap {
-    'clock-weather-card-editor': LovelaceCardEditor
+    'animated-weather-card-editor': LovelaceCardEditor
     'hui-error-card': LovelaceCard
   }
 }
 
-export interface ClockWeatherCardConfig extends LovelaceCardConfig {
+export interface AnimatedWeatherCardConfig extends LovelaceCardConfig {
   entity: string
   title?: string
   sun_entity?: string
@@ -27,7 +27,7 @@ export interface ClockWeatherCardConfig extends LovelaceCardConfig {
   aqi_sensor?: string
 }
 
-export interface MergedClockWeatherCardConfig extends LovelaceCardConfig {
+export interface MergedAnimatedWeatherCardConfig extends LovelaceCardConfig {
   entity: string
   title?: string
   sun_entity: string

@@ -1,5 +1,5 @@
 {
-    "name": "Clock Weather Card",
+    "name": "Animated Weather Card",
     "render_readme": true,
-    "filename": "clock-weather-card.js"
+    "filename": "animated-weather-card.js"
 }

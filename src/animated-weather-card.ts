@@ -11,8 +11,8 @@ import {
 } from 'custom-card-helpers' // This is a community maintained npm module with common helper functions/types. https://github.com/custom-cards/custom-card-helpers
 
 import {
-  type ClockWeatherCardConfig,
-  type MergedClockWeatherCardConfig,
+  type AnimatedWeatherCardConfig,
+  type MergedAnimatedWeatherCardConfig,
   type MergedWeatherForecast,
   Rgb,
   type TemperatureSensor,
@@ -34,7 +34,7 @@ import { version } from '../package.json'
 import { safeRender } from './helpers'
 
 console.info(
-  `%c  CLOCK-WEATHER-CARD \n%c Version: ${version}`,
+  `%c  ANIMATED-WEATHER-CARD \n%c Version: ${version}`,
   'color: orange; font-weight: bold; background: black',
   'color: white; font-weight: bold; background: dimgray'
 );
@@ -43,9 +43,9 @@ console.info(
 // eslint-disable-next-line @typescript-eslint/strict-boolean-expressions
 (window as any).customCards = (window as any).customCards || [];
 (window as any).customCards.push({
-  type: 'clock-weather-card',
-  name: 'Clock Weather Card',
-  description: 'Shows the current date/time in combination with the current weather and an iOS insipired weather forecast.'
+  type: 'animated-weather-card',
+  name: 'Animated Weather Card',
+  description: 'Shows the current weather and forcast with fancy weather condition animations.'
 })
 
 const gradientMap: Map<number, Rgb> = new Map()
@@ -57,12 +57,12 @@ const gradientMap: Map<number, Rgb> = new Map()
   .set(30, new Rgb(255, 150, 79)) // orange
   .set(40, new Rgb(255, 192, 159)) // red
 
-@customElement('clock-weather-card')
-export class ClockWeatherCard extends LitElement {
+@customElement('animated-weather-card')
+export class AnimatedWeatherCard extends LitElement {
   // https://lit.dev/docs/components/properties/
   @property({ attribute: false }) public hass!: HomeAssistant
 
-  @state() private config!: MergedClockWeatherCardConfig
+  @state() private config!: MergedAnimatedWeatherCardConfig
   @state() private forecasts?: WeatherForecast[]
   @state() private error?: TemplateResult
   private forecastSubscriber?: () => Promise<void>
@@ -89,7 +89,7 @@ export class ClockWeatherCard extends LitElement {
   }
 
   // https://lit.dev/docs/components/properties/#accessors-custom
-  public setConfig(config?: ClockWeatherCardConfig): void {
+  public setConfig(config?: AnimatedWeatherCardConfig): void {
     if (!config) {
       throw this.createError('Invalid configuration.')
     }
@@ -211,7 +211,7 @@ export class ClockWeatherCard extends LitElement {
       hasDoubleClick: hasAction(this.config.double_tap_action as ActionConfig | undefined)
     })}
         tabindex="0"
-        .label=${`Clock Weather Card: ${this.config.entity || 'No Entity Defined'}`}
+        .label=${`Animated Weather Card: ${this.config.entity || 'No Entity Defined'}`}
       >
         <div class="weather-animation" id="weather-container">
             <canvas id="bg-canvas"></canvas>
@@ -223,9 +223,9 @@ export class ClockWeatherCard extends LitElement {
           ${safeRender(() => this.renderToday())}
           ${showForecast
         ? html`
-            <clock-weather-card-forecast>
+            <animated-weather-card-forecast>
               ${safeRender(() => this.renderForecast())}
-            </clock-weather-card-forecast>`
+            </animated-weather-card-forecast>`
         : ''}
         </div>
       </ha-card>
@@ -283,7 +283,7 @@ export class ClockWeatherCard extends LitElement {
     const localizedLow = lowTemp !== null ? this.toConfiguredTempWithoutUnit(tempUnit, lowTemp) : null
 
     return html`
-      <clock-weather-card-header>
+      <animated-weather-card-header>
         <div class="header-left">
           <div class="header-info">
             <div class="header-title">${this.config.title || 'Météo'}</div>
@@ -303,7 +303,7 @@ export class ClockWeatherCard extends LitElement {
             </div>
           ` : ''}
         </div>
-      </clock-weather-card-header>
+      </animated-weather-card-header>
     `
   }
 
@@ -373,7 +373,7 @@ export class ClockWeatherCard extends LitElement {
     }
   }
 
-  private mergeConfig(config: ClockWeatherCardConfig): MergedClockWeatherCardConfig {
+  private mergeConfig(config: AnimatedWeatherCardConfig): MergedAnimatedWeatherCardConfig {
     return {
       ...config,
       sun_entity: config.sun_entity ?? 'sun.sun',
@@ -601,7 +601,7 @@ export class ClockWeatherCard extends LitElement {
       }
       this.forecastSubscriber = await this.hass.connection.subscribeMessage<WeatherForecastEvent>(callback, message, options)
     } catch (e: unknown) {
-      console.error('clock-weather-card - Error when subscribing to weather forecast', e)
+      console.error('animated-weather-card - Error when subscribing to weather forecast', e)
     } finally {
       this.forecastSubscriberLock = false
     }
@@ -658,7 +658,7 @@ export class ClockWeatherCard extends LitElement {
       return 'hourly_not_supported'
     } else {
       // !hourly && !supportsDaily
-      console.warn(`clock-weather-card - Weather entity [${this.config.entity}] does not support daily forecast. Falling back to hourly forecast.`)
+      console.warn(`animated-weather-card - Weather entity [${this.config.entity}] does not support daily forecast. Falling back to hourly forecast.`)
       return 'hourly'
     }
   }

@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Clock Weather Card Preview</title>
+    <title>Animated Weather Card Preview</title>
     <style>
         body {
             background-color: #2c3e50;
@@ -39,7 +39,7 @@
             });
         }
     </script>
-    <script type="module" src="./dist/clock-weather-card.js"></script>
+    <script type="module" src="./dist/animated-weather-card.js"></script>
 </head>
 
 <body>
@@ -60,7 +60,7 @@
                 <option value="fog">Fog</option>
             </select>
         </div>
-        <clock-weather-card id="weatherCard"></clock-weather-card>
+        <animated-weather-card id="weatherCard"></animated-weather-card>
     </div>
 
     <script type="module">
@@ -108,7 +108,7 @@
         };
 
         const config = {
-            type: 'custom:clock-weather-card',
+            type: 'custom:animated-weather-card',
             entity: 'weather.demo',
             title: 'Météo',
             sun_entity: 'sun.sun',
@@ -120,9 +120,9 @@
             card.hass = { ...hass }; // Trigger update
         });
 
-        console.log('Waiting for clock-weather-card to be defined...');
-        customElements.whenDefined('clock-weather-card').then(() => {
-            console.log('clock-weather-card defined! Setting config and hass...');
+        console.log('Waiting for animated-weather-card to be defined...');
+        customElements.whenDefined('animated-weather-card').then(() => {
+            console.log('animated-weather-card defined! Setting config and hass...');
             try {
                 card.setConfig(config);
                 card.hass = { ...hass };
@@ -131,7 +131,7 @@
                 console.error('Error setting card config:', e);
             }
         }).catch(err => {
-            console.error('Failed to define clock-weather-card:', err);
+            console.error('Failed to define animated-weather-card:', err);
         });
     </script>
 </body>

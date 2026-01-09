@@ -59,7 +59,7 @@ export default css`
     padding: 1.5rem;
   }
 
-  clock-weather-card-header {
+  animated-weather-card-header {
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
@@ -134,7 +134,7 @@ export default css`
     max-height: 100%;
   }
 
-  clock-weather-card-forecast {
+  animated-weather-card-forecast {
     display: flex;
     justify-content: space-around;
     padding-top: 1.5rem;
