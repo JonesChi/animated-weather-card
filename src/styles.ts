@@ -28,214 +28,29 @@ export default css`
     overflow: hidden;
   }
 
-  /* Sunny - Advanced Gold Glow & Lens Flare */
-  .sunny {
-    background: 
-      radial-gradient(circle at 20% 20%, rgba(255, 255, 200, 0.2) 0%, transparent 40%),
-      radial-gradient(circle at 80% 80%, rgba(255, 200, 100, 0.1) 0%, transparent 50%);
-    animation: sunny-pulse 12s ease-in-out infinite alternate;
-  }
-  .sunny::after {
-    content: '';
-    position: absolute;
-    top: -50%;
-    left: -50%;
-    width: 200%;
-    height: 200%;
-    background: radial-gradient(circle at center, transparent 30%, rgba(255, 255, 255, 0.05) 31%, transparent 32%);
-    background-size: 100% 100%;
-    animation: rotate-flare 30s linear infinite;
-    mix-blend-mode: screen;
-  }
-  @keyframes sunny-pulse {
-    from { opacity: 0.5; transform: scale(1); }
-    to { opacity: 1; transform: scale(1.05); }
-  }
-  @keyframes rotate-flare {
-    from { transform: rotate(0deg); }
-    to { transform: rotate(360deg); }
-  }
-
-  /* Cloudy - Multi-layered Parallax Clouds */
-  .cloudy {
-    background: 
-      radial-gradient(ellipse at 30% 30%, rgba(255, 255, 255, 0.1) 0%, transparent 60%),
-      radial-gradient(ellipse at 70% 60%, rgba(255, 255, 255, 0.08) 0%, transparent 70%);
-  }
-  .cloudy::before, .cloudy::after {
-    content: '';
+  /* Canvas Layers */
+  #bg-canvas, #scene-canvas, #fx-canvas {
     position: absolute;
     top: 0;
     left: 0;
-    width: 400%;
-    height: 100%;
-    background-image: 
-      radial-gradient(circle at 10% 20%, rgba(255,255,255,0.05) 0%, transparent 10%),
-      radial-gradient(circle at 15% 50%, rgba(255,255,255,0.03) 0%, transparent 15%),
-      radial-gradient(circle at 25% 30%, rgba(255,255,255,0.04) 0%, transparent 12%),
-      radial-gradient(circle at 40% 70%, rgba(255,255,255,0.05) 0%, transparent 10%),
-      radial-gradient(circle at 55% 40%, rgba(255,255,255,0.03) 0%, transparent 15%),
-      radial-gradient(circle at 70% 20%, rgba(255,255,255,0.04) 0%, transparent 12%),
-      radial-gradient(circle at 85% 60%, rgba(255,255,255,0.05) 0%, transparent 10%);
-    background-size: 25% 100%;
-    animation: move-clouds 120s linear infinite;
-    filter: blur(20px);
-  }
-  .cloudy::after {
-    top: 10%;
-    opacity: 0.6;
-    animation-duration: 180s;
-    animation-delay: -30s;
-    filter: blur(30px);
-  }
-  @keyframes move-clouds {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
-
-  /* Rain Container - DOM Based */
-  .rain-container {
-    position: absolute;
     width: 100%;
     height: 100%;
+  }
+  #bg-canvas {
+    z-index: 0;
+    transition: filter 1s ease;
+  }
+  #scene-canvas {
+    z-index: 1;
+    mix-blend-mode: plus-lighter;
+  }
+  #fx-canvas {
     z-index: 2;
     pointer-events: none;
-    overflow: hidden;
+    opacity: 0.7;
+    mix-blend-mode: overlay;
   }
 
-  /* Drop Wrapper */
-  .drop {
-    position: absolute;
-    bottom: 100%;
-    width: 15px;
-    height: 120px;
-    pointer-events: none;
-    animation: drop-fall linear infinite;
-  }
-
-  /* Stem - The falling water liquid */
-  .stem {
-    width: 1px;
-    height: 60%;
-    margin-left: 7px;
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.5));
-    animation: stem-fade linear infinite;
-  }
-
-  /* Splat - The impact at the bottom */
-  .splat {
-    width: 15px;
-    height: 10px;
-    border-top: 2px solid rgba(255, 255, 255, 0.8);
-    border-radius: 50%;
-    opacity: 1;
-    transform: scale(0);
-    animation: splat-scale linear infinite;
-    display: none; /* Hidden by default, shown by animation */
-  }
-
-  /* Animations */
-  @keyframes drop-fall {
-    0% { bottom: 100%; transform: translateX(0); }
-    90% { bottom: 0; } /* Impact at 90% */
-    100% { bottom: -20px; } /* Fall through */
-  }
-
-  @keyframes stem-fade {
-    0% { opacity: 1; }
-    85% { opacity: 1; }
-    90% { opacity: 0; }
-    100% { opacity: 0; }
-  }
-
-  @keyframes splat-scale {
-    0% { opacity: 1; transform: scale(0); }
-    80% { opacity: 1; transform: scale(0); }
-    90% { opacity: 1; transform: scale(1); }
-    100% { opacity: 0; transform: scale(1.5); }
-  }
-
-  /* Pouring Modifier - Faster, Slanted */
-  .rain-container.pouring .drop {
-    transform: rotate(10deg); /* Slight wind angle for pouring */
-  }
-  .rain-container.pouring .stem {
-    background: linear-gradient(to bottom, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.8)); /* Whiter */
-  }
-  
-  /* Ensure background clean */
-  .rainy, .pouring {
-    background: transparent;
-  }
-
-
-  /* Lightning - Dramatic Non-linear Flashes */
-  .lightning {
-    background: rgba(10, 10, 30, 0.2);
-    animation: lightning-cycle 8s infinite;
-  }
-  @keyframes lightning-cycle {
-    0%, 90%, 100% { background: rgba(10, 10, 30, 0.2); }
-    91% { background: rgba(255, 255, 255, 0.3); }
-    92% { background: rgba(10, 10, 30, 0.2); }
-    93% { background: rgba(255, 255, 255, 0.5); }
-    94% { background: rgba(10, 10, 30, 0.2); }
-  }
-
-  /* Snowy - Realistic Drifting Snow */
-  .snowy::before, .snowy::after {
-    content: '';
-    position: absolute;
-    top: -10%;
-    left: 0;
-    width: 200%;
-    height: 120%;
-    background-image: 
-      radial-gradient(circle, white 1px, transparent 1px),
-      radial-gradient(circle, white 2px, transparent 2px);
-    background-size: 100px 100px, 150px 150px;
-    background-position: 0 0, 50px 50px;
-    animation: snow-drift 15s linear infinite;
-    filter: blur(1px);
-    opacity: 0.8;
-  }
-  .snowy::after {
-    animation-duration: 25s;
-    animation-delay: -5s;
-    background-size: 200px 200px, 250px 250px;
-    filter: blur(2px);
-    opacity: 0.5;
-  }
-  @keyframes snow-drift {
-    0% { transform: translate(0, 0); }
-    25% { transform: translate(-5%, 25%); }
-    50% { transform: translate(0, 50%); }
-    75% { transform: translate(5%, 75%); }
-    100% { transform: translate(0, 100px); }
-  }
-
-  /* Fog - Moving Fog Banks */
-  .fog {
-    background: linear-gradient(to bottom, transparent, rgba(200, 200, 200, 0.1), transparent);
-  }
-  .fog::before {
-    content: '';
-    position: absolute;
-    width: 300%;
-    height: 100%;
-    background: 
-      radial-gradient(ellipse at 0% 50%, rgba(255,255,255,0.15) 0%, transparent 40%),
-      radial-gradient(ellipse at 25% 30%, rgba(255,255,255,0.1) 0%, transparent 50%),
-      radial-gradient(ellipse at 50% 60%, rgba(255,255,255,0.15) 0%, transparent 45%),
-      radial-gradient(ellipse at 75% 20%, rgba(255,255,255,0.1) 0%, transparent 55%),
-      radial-gradient(ellipse at 100% 50%, rgba(255,255,255,0.15) 0%, transparent 40%);
-    animation: move-fog 40s linear infinite;
-    filter: blur(40px);
-  }
-  @keyframes move-fog {
-    from { transform: translateX(0); }
-    to { transform: translateX(-50%); }
-  }
 
 
   .card-content {

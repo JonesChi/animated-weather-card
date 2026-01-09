@@ -22,8 +22,9 @@ import {
   type Weather,
   WeatherEntityFeature,
   type WeatherForecast,
-  type WeatherForecastEvent
+  type WeatherForecastEvent,
 } from './types'
+import { WeatherVisualEngine } from './weather-visual-engine'
 import styles from './styles'
 import { actionHandler } from './action-handler-directive'
 import { localize } from './localize/localize'
@@ -69,6 +70,9 @@ export class ClockWeatherCard extends LitElement {
   @state() private error?: TemplateResult
   private forecastSubscriber?: () => Promise<void>
   private forecastSubscriberLock = false
+  private visualEngine?: WeatherVisualEngine
+  private resizeObserver?: ResizeObserver
+  private _lastWeatherState?: string
 
   constructor() {
     super()
@@ -130,6 +134,12 @@ export class ClockWeatherCard extends LitElement {
     if (oldHass) {
       const oldSun = oldHass.states[this.config.sun_entity]
       const newSun = this.hass.states[this.config.sun_entity]
+
+      const newWeatherState = this.hass.states[this.config.entity]?.state
+      if (newWeatherState !== this._lastWeatherState) {
+        return true
+      }
+
       if (oldSun !== newSun) {
         return true
       }
@@ -139,9 +149,55 @@ export class ClockWeatherCard extends LitElement {
   }
 
   protected updated(changedProps: PropertyValues): void {
-    super.updated(changedProps)
+    super.updated(changedProps);
     if (changedProps.has('config')) {
-      void this.subscribeForecastEvents()
+      void this.subscribeForecastEvents();
+    }
+
+    if (changedProps.has('hass') || changedProps.has('config')) {
+      this.updateWeatherVisuals();
+    }
+  }
+
+  protected firstUpdated(): void {
+    this.initVisualEngine();
+  }
+
+  private initVisualEngine(): void {
+    const container = this.shadowRoot?.getElementById('weather-container');
+    const bg = this.shadowRoot?.getElementById('bg-canvas') as HTMLCanvasElement;
+    const scene = this.shadowRoot?.getElementById('scene-canvas') as HTMLCanvasElement;
+    const fx = this.shadowRoot?.getElementById('fx-canvas') as HTMLCanvasElement;
+
+    if (bg && scene && fx && container) {
+      this.visualEngine = new WeatherVisualEngine(bg, scene, fx);
+      this.visualEngine.start();
+
+      this.resizeObserver = new ResizeObserver(() => {
+        if (this.visualEngine) {
+          const rect = container.getBoundingClientRect();
+          this.visualEngine.resize(rect.width, rect.height);
+        }
+      });
+      this.resizeObserver.observe(container);
+
+      // Initial resize
+      const rect = container.getBoundingClientRect();
+      this.visualEngine.resize(rect.width, rect.height);
+
+      // Set initial weather
+      this.updateWeatherVisuals();
+    }
+  }
+
+  private updateWeatherVisuals(): void {
+    if (!this.visualEngine || !this.hass || !this.config) return;
+    try {
+      const weather = this.getWeather();
+      this.visualEngine.setWeather(weather.state);
+      this._lastWeatherState = weather.state;
+    } catch (e) {
+      // Weather entity might not be ready
     }
   }
 
@@ -155,9 +211,7 @@ export class ClockWeatherCard extends LitElement {
     const state = weather.state
     const showForecast = !this.config.hide_forecast_section
 
-    // Determine background animation class
-    const animationClass = this.getAnimationClass(state)
-
+    // Note: We use the canvas engine now, but keep the weather-animation container for positioning
     return html`
       <ha-card
         @action=${(e: ActionHandlerEvent) => { this.handleAction(e) }}
@@ -168,9 +222,12 @@ export class ClockWeatherCard extends LitElement {
         tabindex="0"
         .label=${`Clock Weather Card: ${this.config.entity || 'No Entity Defined'}`}
       >
-        <div class="weather-animation ${animationClass}">
-          ${(state === 'rainy' || state === 'pouring') ? this.renderRain(state) : ''}
+        <div class="weather-animation" id="weather-container">
+            <canvas id="bg-canvas"></canvas>
+            <canvas id="scene-canvas"></canvas>
+            <canvas id="fx-canvas"></canvas>
         </div>
+        
         <div class="card-content">
           ${safeRender(() => this.renderToday())}
           ${showForecast
@@ -184,6 +241,7 @@ export class ClockWeatherCard extends LitElement {
     `
   }
 
+
   public connectedCallback(): void {
     super.connectedCallback()
     if (this.hasUpdated) {
@@ -194,6 +252,8 @@ export class ClockWeatherCard extends LitElement {
   public disconnectedCallback(): void {
     super.disconnectedCallback()
     void this.unsubscribeForecastEvents()
+    if (this.visualEngine) this.visualEngine.stop();
+    if (this.resizeObserver) this.resizeObserver.disconnect();
   }
 
   protected willUpdate(changedProps: PropertyValues): void {
@@ -282,7 +342,7 @@ export class ClockWeatherCard extends LitElement {
   }
 
   private renderRain(state: string): TemplateResult {
-    const dropCount = state === 'pouring' ? 60 : 20
+    const dropCount = (state === 'pouring' || state === 'lightning-rainy') ? 60 : 20
     const drops: TemplateResult[] = []
 
     for (let i = 0; i < dropCount; i++) {
