@@ -107,7 +107,7 @@ export class WeatherVisualEngine {
             for (let i = 0; i < 70; i++) this.particles.push(this.createRainDrop(false))
         } else if (['windy', 'windy-variant'].includes(mapped)) {
             for (let i = 0; i < 30; i++) this.particles.push(this.createDebris())
-        } else if (['sunny', 'clear-night', 'partlycloudy'].includes(mapped)) {
+        } else if (['sunny', 'clear-night'].includes(mapped)) {
             for (let i = 0; i < 20; i++) this.particles.push(this.createDust())
         } else if (mapped === 'fog') {
             for (let i = 0; i < 50; i++) this.particles.push(this.createFogParticle())
@@ -116,11 +116,11 @@ export class WeatherVisualEngine {
 
     private initClouds() {
         // Initial random clouds
-        for (let i = 0; i < 30; i++) {
+        for (let i = 0; i < 40; i++) {
             this.clouds.push({
                 x: rnd(-100, 1200),
                 y: rnd(-50, 300),
-                r: rnd(60, 180),
+                r: rnd(20, 80),
                 v: rnd(0.1, 0.4) // Slow drift
             })
         }
