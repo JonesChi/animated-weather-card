@@ -274,20 +274,34 @@ export class ClockWeatherCard extends LitElement {
     const weatherString = this.localize(`weather.${state}`)
     const localizedTemp = temp !== null ? this.toConfiguredTempWithUnit(tempUnit, temp) : null
 
+    // Get today's forecast to find High/Low
+    const dailyForecasts = this.mergeForecasts(1, false) // 1 day, daily mode
+    const today = dailyForecasts.length > 0 ? dailyForecasts[0] : null
+    const highTemp = today ? Math.round(today.temperature) : null
+    const lowTemp = today ? Math.round(today.templow) : null
+    const localizedHigh = highTemp !== null ? this.toConfiguredTempWithoutUnit(tempUnit, highTemp) : null
+    const localizedLow = lowTemp !== null ? this.toConfiguredTempWithoutUnit(tempUnit, lowTemp) : null
+
     return html`
       <clock-weather-card-header>
         <div class="header-left">
-          <div class="icon-badge">
-            <img class="grow-img" src=${icon} />
-          </div>
           <div class="header-info">
             <div class="header-title">${this.config.title || 'Météo'}</div>
             <div class="header-status">${weatherString}</div>
           </div>
         </div>
         <div class="header-right">
-          <ha-icon icon="mdi:thermometer"></ha-icon>
-          <span>${localizedTemp}</span>
+          <div class="weather-stat">
+            <ha-icon icon="mdi:thermometer" class="stat-icon"></ha-icon>
+            <div class="stat-value current">${localizedTemp}</div>
+          </div>
+          ${today ? html`
+            <div class="weather-stat high-low">
+              <span class="high">${localizedHigh}°</span>
+              <span class="separator">/</span>
+              <span class="low">${localizedLow}°</span>
+            </div>
+          ` : ''}
         </div>
       </clock-weather-card-header>
     `

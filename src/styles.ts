@@ -72,17 +72,6 @@ export default css`
     gap: 1rem;
   }
 
-  .icon-badge {
-    width: 64px;
-    height: 64px;
-    background: #a4b42b; /* Olive yellow from image */
-    border-radius: 50%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 12px;
-  }
-
   .header-info {
     display: flex;
     flex-direction: column;
@@ -100,9 +89,44 @@ export default css`
 
   .header-right {
     display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 0.2rem;
+  }
+
+  .weather-stat {
+    display: flex;
     align-items: center;
     gap: 0.5rem;
-    font-size: 1.2rem;
+  }
+
+  .stat-value.current {
+    font-size: 2rem;
+    font-weight: bold;
+    line-height: 1;
+  }
+
+  .stat-icon {
+    width: 24px;
+    height: 24px;
+  }
+
+  .weather-stat.high-low {
+    font-size: 0.9rem;
+    gap: 0.3rem;
+    opacity: 0.8;
+  }
+
+  .separator {
+    opacity: 0.5;
+  }
+
+  .high {
+    font-weight: 600;
+  }
+
+  .low {
+    opacity: 0.7;
   }
 
   .grow-img {
