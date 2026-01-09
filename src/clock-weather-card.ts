@@ -246,6 +246,17 @@ export class ClockWeatherCard extends LitElement {
     super.connectedCallback()
     if (this.hasUpdated) {
       void this.subscribeForecastEvents()
+
+      // Restart the visual engine if it was stopped
+      if (this.visualEngine) {
+        this.visualEngine.start()
+      }
+
+      // Re-observe resize if it was disconnected
+      const container = this.shadowRoot?.getElementById('weather-container')
+      if (this.resizeObserver && container) {
+        this.resizeObserver.observe(container)
+      }
     }
   }
 
