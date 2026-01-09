@@ -7,7 +7,6 @@ import {
   hasAction,
   type ActionHandlerEvent,
   handleAction,
-  TimeFormat,
   type ActionConfig
 } from 'custom-card-helpers' // This is a community maintained npm module with common helper functions/types. https://github.com/custom-cards/custom-card-helpers
 
@@ -33,7 +32,6 @@ import { extractMostOccuring, max, min, roundIfNotNull, roundUp } from './utils'
 import { animatedIcons, staticIcons } from './images'
 import { version } from '../package.json'
 import { safeRender } from './helpers'
-import { DateTime } from 'luxon'
 
 console.info(
   `%c  CLOCK-WEATHER-CARD \n%c Version: ${version}`,
@@ -65,7 +63,6 @@ export class ClockWeatherCard extends LitElement {
   @property({ attribute: false }) public hass!: HomeAssistant
 
   @state() private config!: MergedClockWeatherCardConfig
-  @state() private currentDate!: DateTime
   @state() private forecasts?: WeatherForecast[]
   @state() private error?: TemplateResult
   private forecastSubscriber?: () => Promise<void>
@@ -76,10 +73,6 @@ export class ClockWeatherCard extends LitElement {
 
   constructor() {
     super()
-    this.currentDate = DateTime.now()
-    const msToNextSecond = (1000 - this.currentDate.millisecond)
-    setTimeout(() => setInterval(() => { this.currentDate = DateTime.now() }, 1000), msToNextSecond)
-    setTimeout(() => { this.currentDate = DateTime.now() }, msToNextSecond)
   }
 
   public static getStubConfig(_hass: HomeAssistant, entities: string[], entitiesFallback: string[]): Record<string, unknown> {
@@ -109,9 +102,7 @@ export class ClockWeatherCard extends LitElement {
       throw this.createError('Attribute "forecast_rows" must be greater than 0.')
     }
 
-    if (config.time_format && config.time_format.toString() !== '24' && config.time_format.toString() !== '12') {
-      throw this.createError('Attribute "time_format" must either be "12" or "24".')
-    }
+
 
     if (config.hide_today_section && config.hide_forecast_section) {
       throw this.createError('Attributes "hide_today_section" and "hide_forecast_section" must not enabled at the same time.')
@@ -280,8 +271,6 @@ export class ClockWeatherCard extends LitElement {
     const temp = this.config.show_decimal ? this.getCurrentTemperature() : roundIfNotNull(this.getCurrentTemperature())
     const tempUnit = weather.attributes.temperature_unit
     const _humidity = roundIfNotNull(this.getCurrentHumidity())
-    const iconType = this.config.weather_icon_type
-    const icon = this.toIcon(state, iconType, false, this.getIconAnimationKind())
     const weatherString = this.localize(`weather.${state}`)
     const localizedTemp = temp !== null ? this.toConfiguredTempWithUnit(tempUnit, temp) : null
 
@@ -338,7 +327,13 @@ export class ClockWeatherCard extends LitElement {
 
     const displayTexts = forecasts
       .map(f => f.datetime)
-      .map(d => hourly ? this.time(d) : this.localize(`day.${d.weekday}`))
+      .map(d => {
+        if (hourly) {
+          return d.toLocaleTimeString(this.getLocale(), { hour: 'numeric', minute: 'numeric' })
+        }
+        const dayIndex = d.getDay() || 7
+        return this.localize(`day.${dayIndex}`)
+      })
     const maxColOneChars = displayTexts.length ? max(displayTexts.map(t => t.length)) : 0
 
     return forecasts.map((forecast, i) => safeRender(() => this.renderForecastItem(forecast, minTemp, maxTemp, currentTemp, temperatureUnit, hourly, displayTexts[i], maxColOneChars)))
@@ -348,7 +343,8 @@ export class ClockWeatherCard extends LitElement {
     const weatherState = forecast.condition === 'pouring' ? 'raindrops' : forecast.condition === 'rainy' ? 'raindrop' : forecast.condition
     const weatherIcon = this.toIcon(weatherState, 'fill', true, 'static')
     const tempUnit = this.getWeather().attributes.temperature_unit
-    const isNow = hourly ? DateTime.now().hour === forecast.datetime.hour : DateTime.now().day === forecast.datetime.day
+    const now = new Date()
+    const isNow = hourly ? now.getHours() === forecast.datetime.getHours() : now.getDate() === forecast.datetime.getDate()
     const minTempDay = Math.round(isNow && currentTemp !== null ? Math.min(currentTemp, forecast.templow) : forecast.templow)
     const maxTempDay = Math.round(isNow && currentTemp !== null ? Math.max(currentTemp, forecast.temperature) : forecast.temperature)
 
@@ -366,107 +362,9 @@ export class ClockWeatherCard extends LitElement {
     `
   }
 
-  private renderRain(state: string): TemplateResult {
-    const dropCount = (state === 'pouring' || state === 'lightning-rainy') ? 60 : 20
-    const drops: TemplateResult[] = []
-
-    for (let i = 0; i < dropCount; i++) {
-      // Randomize delay (0-2s) and duration (0.5-1.5s) to desynchronize
-      const delay = (Math.random() * 2).toFixed(2)
-      const duration = (0.5 + Math.random()).toFixed(2)
-      const left = Math.floor(Math.random() * 100)
-
-      drops.push(html`
-          <div class="drop" style="left: ${left}%; animation-delay: ${delay}s; animation-duration: ${duration}s;">
-            <div class="stem" style="animation-delay: ${delay}s; animation-duration: ${duration}s;"></div>
-            <div class="splat" style="animation-delay: ${delay}s; animation-duration: ${duration}s;"></div>
-          </div>
-        `)
-    }
-
-    return html`<div class="rain-container ${state}">${drops}</div>`
-  }
-
   // https://lit.dev/docs/components/styles/
   static get styles(): CSSResultGroup {
     return styles
-  }
-
-  private createGradientString(minTempDay: number, maxTempDay: number, temperatureUnit: TemperatureUnit): string {
-    function linearizeColor(temp: number, [tempLeft, colorLeft]: [number, Rgb], [tempRight, colorRight]: [number, Rgb]): Rgb {
-      const ratio = Math.max(Math.min((temp - tempLeft) / (tempRight - tempLeft), 100.0), 0.0)
-      return new Rgb(
-        Math.round(colorLeft.r + ratio * (colorRight.r - colorLeft.r)),
-        Math.round(colorLeft.g + ratio * (colorRight.g - colorLeft.g)),
-        Math.round(colorLeft.b + ratio * (colorRight.b - colorLeft.b))
-      )
-    }
-
-    const minTempDayCelsius = this.toCelsius(temperatureUnit, minTempDay)
-    const maxTempDayCelsius = this.toCelsius(temperatureUnit, maxTempDay)
-
-    const outputGradient = ([...gradientMap.entries()]
-      .reduce((gradient, [temp, color], index, arr) => {
-        if (index === 0) {
-          // First color
-          // Remark: This if-level can't be optimized away as in the unlikely event
-          // that the daily low would be exactly same floating point value than
-          // the first color temperature, we would hit negative index on the lower branches.
-          if (temp > minTempDayCelsius) {
-            // Daily low is lower than lowest color temperature
-            // so we have to duplicate.
-            gradient.set(0.0, color)
-            gradient.set((temp - minTempDayCelsius) / (maxTempDayCelsius - minTempDayCelsius), color)
-          } else {
-            // Temp is smaller or equal than daily low so we'll skip the color until we know what we need to linearize.
-          }
-        } else if (temp < minTempDayCelsius) {
-          // Still haven't found a color that would be the first one
-
-        } else if (!gradient.has(0.0)) {
-          // This is the first color usable color, we need to linearize the color with the previous one
-          gradient.set(0.0, linearizeColor(minTempDayCelsius, arr[index - 1], [temp, color]))
-
-          // and then add this color to the right position
-          if (temp > maxTempDayCelsius) {
-            // This color is also higher than the daily max so we need to linearize it as well
-            gradient.set(1.0, linearizeColor(maxTempDayCelsius, arr[index - 1], [temp, color]))
-          } else {
-            // In other cases (> 0.0 and <= 1.0) we calculate the position
-            gradient.set((temp - minTempDayCelsius) / (maxTempDayCelsius - minTempDayCelsius), color)
-          }
-        } else if (temp < maxTempDayCelsius) {
-          // color is on the gradient
-          gradient.set((temp - minTempDayCelsius) / (maxTempDayCelsius - minTempDayCelsius), color)
-        } else if (!gradient.has(1.0)) {
-          // Last color of the gradient
-          if (temp > maxTempDayCelsius) {
-            // Linearize the last color
-            gradient.set(1.0, linearizeColor(maxTempDayCelsius, arr[index - 1], [temp, color]))
-          } else {
-            // Get last color from the color temperature
-            gradient.set(1.0, color)
-          }
-        } else {
-          // We don't care for intermediate colors that are not on the daily gradient
-        }
-
-        return gradient
-      }, new Map<number, Rgb>())
-    )
-
-    // Gradient endpoint check
-    if (!outputGradient.has(1.0)) {
-      // Gradient is missing the final color. This means that the daily max is higher
-      // than highest color temperature so we have to duplicate.
-      outputGradient.set(1.0, Array.from(outputGradient.values()).slice(-1)[0])
-    }
-
-    // Make the gradient string
-    return ([...outputGradient.entries()]
-      .map(([pos, color]) => `${color.toRgbString()} ${Math.round(pos * 100.0)}%`)
-      .join(', ')
-    )
   }
 
   private handleAction(ev: ActionHandlerEvent): void {
@@ -485,16 +383,9 @@ export class ClockWeatherCard extends LitElement {
       forecast_rows: config.forecast_rows ?? 5,
       hourly_forecast: config.hourly_forecast ?? false,
       animated_icon: config.animated_icon ?? true,
-      time_format: config.time_format?.toString() as '12' | '24' | undefined,
-      time_pattern: config.time_pattern ?? undefined,
       show_humidity: config.show_humidity ?? false,
       hide_forecast_section: config.hide_forecast_section ?? false,
       hide_today_section: config.hide_today_section ?? false,
-      hide_clock: config.hide_clock ?? false,
-      hide_date: config.hide_date ?? false,
-      date_pattern: config.date_pattern ?? 'D',
-      use_browser_time: config.use_browser_time ?? false,
-      time_zone: config.time_zone ?? undefined,
       show_decimal: config.show_decimal ?? false,
       apparent_sensor: config.apparent_sensor ?? undefined,
       aqi_sensor: config.aqi_sensor ?? undefined
@@ -595,34 +486,6 @@ export class ClockWeatherCard extends LitElement {
     return this.config.locale ?? this.hass.locale.language ?? 'en-GB'
   }
 
-  private date(): string {
-    return this.toZonedDate(this.currentDate).toFormat(this.config.date_pattern)
-  }
-
-  private time(date: DateTime = this.currentDate): string {
-    if (this.config.time_pattern) {
-      return this.toZonedDate(date).toFormat(this.config.time_pattern)
-    }
-
-    if (this.config.time_format) {
-      return this.toZonedDate(date)
-        .toFormat(this.config.time_format === '24' ? 'HH:mm' : 'h:mm a')
-    }
-    if (this.hass.locale.time_format === TimeFormat.am_pm) {
-      return this.toZonedDate(date).toFormat('h:mm a')
-    }
-
-    if (this.hass.locale.time_format === TimeFormat.twenty_four) {
-      return this.toZonedDate(date).toFormat('HH:mm')
-    }
-
-    return this.toZonedDate(date).toFormat('t')
-  }
-
-  private getIconAnimationKind(): 'static' | 'animated' {
-    return this.config.animated_icon ? 'animated' : 'static'
-  }
-
   private toCelsius(temperatueUnit: TemperatureUnit, temperature: number): number {
     return temperatueUnit === '°C' ? temperature : Math.round((temperature - 32) * (5 / 9))
   }
@@ -651,21 +514,6 @@ export class ClockWeatherCard extends LitElement {
       : this.toCelsius(unit, temp)
   }
 
-  private calculateBarRangePercents(minTemp: number, maxTemp: number, minTempDay: number, maxTempDay: number): { startPercent: number, endPercent: number } {
-    if (maxTemp === minTemp) {
-      // avoid division by 0
-      return { startPercent: 0, endPercent: 100 }
-    }
-    const startPercent = (100 / (maxTemp - minTemp)) * (minTempDay - minTemp)
-    const endPercent = (100 / (maxTemp - minTemp)) * (maxTempDay - minTemp)
-    // fix floating point issue
-    // (100 / (19 - 8)) * (19 - 8) = 100.00000000000001
-    return {
-      startPercent: Math.max(0, startPercent),
-      endPercent: Math.min(100, endPercent)
-    }
-  }
-
   private localize(key: string): string {
     return localize(key, this.getLocale())
   }
@@ -687,21 +535,10 @@ export class ClockWeatherCard extends LitElement {
         agg.push(avg)
         return agg
       }, [])
-      .sort((a, b) => a.datetime.toMillis() - b.datetime.toMillis())
+      .sort((a, b) => a.datetime.getTime() - b.datetime.getTime())
       .slice(0, maxRowsCount)
   }
 
-  private toZonedDate(date: DateTime): DateTime {
-    const localizedDate = date.setLocale(this.getLocale())
-    if (this.config.use_browser_time) return localizedDate
-    const timeZone = this.config.time_zone ?? this.hass?.config?.time_zone
-    const withTimeZone = localizedDate.setZone(timeZone)
-    if (withTimeZone.isValid) {
-      return withTimeZone
-    }
-    console.error(`clock-weather-card - Time Zone [${timeZone}] not supported. Falling back to browser time.`)
-    return localizedDate
-  }
 
   private calculateAverageForecast(forecasts: WeatherForecast[]): MergedWeatherForecast {
     const minTemps = forecasts.map((f) => f.templow ?? f.temperature ?? this.getCurrentTemperature() ?? 0)
@@ -726,31 +563,6 @@ export class ClockWeatherCard extends LitElement {
       condition,
       precipitation_probability: precipitationProbability,
       precipitation
-    }
-  }
-
-  private getAnimationClass(state: string): string {
-    switch (state) {
-      case 'sunny':
-      case 'clear-night':
-        return 'sunny'
-      case 'cloudy':
-      case 'partlycloudy':
-        return 'cloudy'
-      case 'rainy':
-        return 'rainy'
-      case 'pouring':
-        return 'pouring'
-      case 'lightning':
-      case 'lightning-rainy':
-        return 'lightning'
-      case 'snowy':
-      case 'snowy-rainy':
-        return 'snowy'
-      case 'fog':
-        return 'fog'
-      default:
-        return ''
     }
   }
 
@@ -851,11 +663,7 @@ export class ClockWeatherCard extends LitElement {
     }
   }
 
-  private parseDateTime(date: string): DateTime {
-    const fromIso = DateTime.fromISO(date)
-    if (fromIso.isValid) {
-      return fromIso
-    }
-    return DateTime.fromJSDate(new Date(date))
+  private parseDateTime(date: string): Date {
+    return new Date(date)
   }
 }

@@ -1,6 +1,5 @@
 import { type LovelaceCard, type LovelaceCardConfig, type LovelaceCardEditor } from 'custom-card-helpers'
 import { type HassEntity } from 'home-assistant-js-websocket/dist/types'
-import { type DateTime } from 'luxon'
 
 declare global {
   interface HTMLElementTagNameMap {
@@ -19,17 +18,10 @@ export interface ClockWeatherCardConfig extends LovelaceCardConfig {
   animated_icon?: boolean
   forecast_rows?: number
   locale?: string
-  time_format?: '12' | '24'
-  time_pattern?: string
-  date_pattern?: string
   hide_today_section?: boolean
   hide_forecast_section?: boolean
   show_humidity?: boolean
   hourly_forecast?: boolean
-  hide_clock?: boolean
-  hide_date?: boolean
-  use_browser_time?: boolean
-  time_zone?: string
   show_decimal?: boolean
   apparent_sensor?: string
   aqi_sensor?: string
@@ -45,17 +37,10 @@ export interface MergedClockWeatherCardConfig extends LovelaceCardConfig {
   animated_icon: boolean
   forecast_rows: number
   locale?: string
-  time_format?: '12' | '24'
-  time_pattern?: string
-  date_pattern: string
   hide_today_section: boolean
   hide_forecast_section: boolean
   show_humidity: boolean
   hourly_forecast: boolean
-  hide_clock: boolean
-  hide_date: boolean
-  use_browser_time: boolean
-  time_zone?: string
   show_decimal: boolean
   apparent_sensor?: string
   aqi_sensor?: string
@@ -92,7 +77,7 @@ export interface WeatherForecast {
 }
 
 export interface MergedWeatherForecast {
-  datetime: DateTime
+  datetime: Date
   condition: string
   temperature: number
   precipitation: number
@@ -105,13 +90,13 @@ export class Rgb {
   g: number
   b: number
 
-  constructor (r: number, g: number, b: number) {
+  constructor(r: number, g: number, b: number) {
     this.r = r
     this.g = g
     this.b = b
   }
 
-  toRgbString (): string {
+  toRgbString(): string {
     return `rgb(${this.r}, ${this.g}, ${this.b})`
   }
 }
