@@ -200,6 +200,7 @@ export class AnimatedWeatherCard extends LitElement {
 
     const weather = this.getWeather()
     const state = weather.state
+    const showToday = !this.config.hide_today_section
     const showForecast = !this.config.hide_forecast_section
 
     // Note: We use the canvas engine now, but keep the weather-animation container for positioning
@@ -220,10 +221,10 @@ export class AnimatedWeatherCard extends LitElement {
         </div>
         
         <div class="card-content">
-          ${safeRender(() => this.renderToday())}
+          ${showToday ? safeRender(() => this.renderToday()) : ''}
           ${showForecast
         ? html`
-            <animated-weather-card-forecast>
+            <animated-weather-card-forecast class="${showToday ? 'with-separator' : ''}">
               ${safeRender(() => this.renderForecast())}
             </animated-weather-card-forecast>`
         : ''}

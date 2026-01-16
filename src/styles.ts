@@ -144,6 +144,9 @@ export default css`
     display: flex;
     justify-content: space-around;
     padding-top: 1.5rem;
+  }
+
+  animated-weather-card-forecast.with-separator {
     border-top: 1px solid rgba(255, 255, 255, 0.1);
   }
 
