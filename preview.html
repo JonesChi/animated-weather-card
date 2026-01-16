@@ -17,7 +17,7 @@
         }
 
         .container {
-            width: 400px;
+            width: 489px;
         }
     </style>
     <!-- Mock Home Assistant dependencies -->
@@ -81,7 +81,8 @@
                             { datetime: '2025-12-21T12:00:00Z', condition: 'sunny', temperature: 25, templow: 18 },
                             { datetime: '2025-12-22T12:00:00Z', condition: 'cloudy', temperature: 22, templow: 16 },
                             { datetime: '2025-12-23T12:00:00Z', condition: 'rainy', temperature: 19, templow: 14 },
-                            { datetime: '2025-12-24T12:00:00Z', condition: 'sunny', temperature: 24, templow: 17 }
+                            { datetime: '2025-12-24T12:00:00Z', condition: 'sunny', temperature: 24, templow: 17 },
+                            { datetime: '2025-12-25T12:00:00Z', condition: 'sunny', temperature: 26, templow: 18 }
                         ],
                         supported_features: 0 // Legacy
                     }
@@ -112,7 +113,7 @@
             entity: 'weather.demo',
             title: 'Météo',
             sun_entity: 'sun.sun',
-            forecast_rows: 4
+            forecast_rows: 5
         };
 
         stateSelect.addEventListener('change', () => {
