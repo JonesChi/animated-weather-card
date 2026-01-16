@@ -13,18 +13,12 @@ export interface AnimatedWeatherCardConfig extends LovelaceCardConfig {
   title?: string
   sun_entity?: string
   temperature_sensor?: string
-  humidity_sensor?: string
-  weather_icon_type?: 'fill' | 'line'
-  animated_icon?: boolean
   forecast_rows?: number
   locale?: string
   hide_today_section?: boolean
   hide_forecast_section?: boolean
-  show_humidity?: boolean
   hourly_forecast?: boolean
   show_decimal?: boolean
-  apparent_sensor?: string
-  aqi_sensor?: string
 }
 
 export interface MergedAnimatedWeatherCardConfig extends LovelaceCardConfig {
@@ -32,18 +26,12 @@ export interface MergedAnimatedWeatherCardConfig extends LovelaceCardConfig {
   title?: string
   sun_entity: string
   temperature_sensor?: string
-  humidity_sensor?: string
-  weather_icon_type: 'fill' | 'line'
-  animated_icon: boolean
   forecast_rows: number
   locale?: string
   hide_today_section: boolean
   hide_forecast_section: boolean
-  show_humidity: boolean
   hourly_forecast: boolean
   show_decimal: boolean
-  apparent_sensor?: string
-  aqi_sensor?: string
 }
 
 export const enum WeatherEntityFeature {

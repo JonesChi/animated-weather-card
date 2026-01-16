@@ -270,15 +270,14 @@ export class AnimatedWeatherCard extends LitElement {
     const state = weather.state
     const temp = this.config.show_decimal ? this.getCurrentTemperature() : roundIfNotNull(this.getCurrentTemperature())
     const tempUnit = weather.attributes.temperature_unit
-    const _humidity = roundIfNotNull(this.getCurrentHumidity())
     const weatherString = this.localize(`weather.${state}`)
     const localizedTemp = temp !== null ? this.toConfiguredTempWithUnit(tempUnit, temp) : null
 
     // Get today's forecast to find High/Low
     const dailyForecasts = this.mergeForecasts(1, false) // 1 day, daily mode
     const today = dailyForecasts.length > 0 ? dailyForecasts[0] : null
-    const highTemp = today ? Math.round(today.temperature) : null
-    const lowTemp = today ? Math.round(today.templow) : null
+    const highTemp = today ? (this.config.show_decimal ? today.temperature : Math.round(today.temperature)) : null
+    const lowTemp = today ? (this.config.show_decimal ? today.templow : Math.round(today.templow)) : null
     const localizedHigh = highTemp !== null ? this.toConfiguredTempWithoutUnit(tempUnit, highTemp) : null
     const localizedLow = lowTemp !== null ? this.toConfiguredTempWithoutUnit(tempUnit, lowTemp) : null
 
@@ -309,7 +308,7 @@ export class AnimatedWeatherCard extends LitElement {
 
   private renderForecast(): TemplateResult[] {
     const weather = this.getWeather()
-    const currentTemp = roundIfNotNull(this.getCurrentTemperature())
+    const currentTemp = this.config.show_decimal ? this.getCurrentTemperature() : roundIfNotNull(this.getCurrentTemperature())
     const maxRowsCount = this.config.forecast_rows
     const hourly = this.config.hourly_forecast
     const temperatureUnit = weather.attributes.temperature_unit
@@ -345,8 +344,10 @@ export class AnimatedWeatherCard extends LitElement {
     const tempUnit = this.getWeather().attributes.temperature_unit
     const now = new Date()
     const isNow = hourly ? now.getHours() === forecast.datetime.getHours() : now.getDate() === forecast.datetime.getDate()
-    const minTempDay = Math.round(isNow && currentTemp !== null ? Math.min(currentTemp, forecast.templow) : forecast.templow)
-    const maxTempDay = Math.round(isNow && currentTemp !== null ? Math.max(currentTemp, forecast.temperature) : forecast.temperature)
+    const minTempDayRaw = isNow && currentTemp !== null ? Math.min(currentTemp, forecast.templow) : forecast.templow
+    const maxTempDayRaw = isNow && currentTemp !== null ? Math.max(currentTemp, forecast.temperature) : forecast.temperature
+    const minTempDay = this.config.show_decimal ? minTempDayRaw : Math.round(minTempDayRaw)
+    const maxTempDay = this.config.show_decimal ? maxTempDayRaw : Math.round(maxTempDayRaw)
 
     return html`
       <div class="forecast-item">
@@ -378,17 +379,11 @@ export class AnimatedWeatherCard extends LitElement {
       ...config,
       sun_entity: config.sun_entity ?? 'sun.sun',
       temperature_sensor: config.temperature_sensor,
-      humidity_sensor: config.humidity_sensor,
-      weather_icon_type: config.weather_icon_type ?? 'line',
       forecast_rows: config.forecast_rows ?? 5,
       hourly_forecast: config.hourly_forecast ?? false,
-      animated_icon: config.animated_icon ?? true,
-      show_humidity: config.show_humidity ?? false,
       hide_forecast_section: config.hide_forecast_section ?? false,
       hide_today_section: config.hide_today_section ?? false,
-      show_decimal: config.show_decimal ?? false,
-      apparent_sensor: config.apparent_sensor ?? undefined,
-      aqi_sensor: config.aqi_sensor ?? undefined
+      show_decimal: config.show_decimal ?? false
     }
   }
 
