@@ -3,7 +3,7 @@
 A [Home Assistant Dashboard Card](https://www.home-assistant.io/dashboards/) available through the [Home Assistant Community Store](https://hacs.xyz)
 featuring beautiful animated weather backgrounds with current conditions and forecast display.
 
-![Animated Weather Card](.github/assets/card.gif)
+![Animated Weather Card](.github/assets/animations.gif)
 
 This project is forked from [clock-weather-card](https://github.com/pkissling/clock-weather-card) with a focus on stunning animated weather visuals.
 
@@ -49,7 +49,7 @@ Your weather provider may not provide today's weather as part of their weather f
 
 ### Manual Installation
 
-1. Download the [animated-weather-card.js](https://www.github.com/yourusername/animated-weather-card/releases/latest/download/animated-weather-card.js).
+1. Download the [animated-weather-card.js](https://www.github.com/joneschi/animated-weather-card/releases/latest/download/animated-weather-card.js).
 2. Place the file in your Home Assistant's `config/www` folder.
 3. Add the configuration to your `ui-lovelace.yaml`.
 
