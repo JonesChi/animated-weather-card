@@ -14,14 +14,13 @@ import {
   type AnimatedWeatherCardConfig,
   type MergedAnimatedWeatherCardConfig,
   type MergedWeatherForecast,
-  Rgb,
   type TemperatureSensor,
   type TemperatureUnit,
   type HumiditySensor,
   type Weather,
   WeatherEntityFeature,
   type WeatherForecast,
-  type WeatherForecastEvent,
+  type WeatherForecastEvent
 } from './types'
 import { WeatherVisualEngine } from './weather-visual-engine'
 import styles from './styles'
@@ -48,15 +47,6 @@ console.info(
   description: 'Shows the current weather and forcast with fancy weather condition animations.'
 })
 
-const gradientMap: Map<number, Rgb> = new Map()
-  .set(-20, new Rgb(0, 60, 98)) // dark blue
-  .set(-10, new Rgb(120, 162, 204)) // darker blue
-  .set(0, new Rgb(164, 195, 210)) // light blue
-  .set(10, new Rgb(121, 210, 179)) // turquoise
-  .set(20, new Rgb(252, 245, 112)) // yellow
-  .set(30, new Rgb(255, 150, 79)) // orange
-  .set(40, new Rgb(255, 192, 159)) // red
-
 @customElement('animated-weather-card')
 export class AnimatedWeatherCard extends LitElement {
   // https://lit.dev/docs/components/properties/
@@ -71,11 +61,7 @@ export class AnimatedWeatherCard extends LitElement {
   private resizeObserver?: ResizeObserver
   private _lastWeatherState?: string
 
-  constructor() {
-    super()
-  }
-
-  public static getStubConfig(_hass: HomeAssistant, entities: string[], entitiesFallback: string[]): Record<string, unknown> {
+  public static getStubConfig (_hass: HomeAssistant, entities: string[], entitiesFallback: string[]): Record<string, unknown> {
     const entity = entities.find(e => e.startsWith('weather.') ?? entitiesFallback.find(() => true))
     if (entity) {
       return { entity }
@@ -84,12 +70,12 @@ export class AnimatedWeatherCard extends LitElement {
     return {}
   }
 
-  public getCardSize(): number {
+  public getCardSize (): number {
     return 3 + roundUp(this.config.forecast_rows / 2)
   }
 
   // https://lit.dev/docs/components/properties/#accessors-custom
-  public setConfig(config?: AnimatedWeatherCardConfig): void {
+  public setConfig (config?: AnimatedWeatherCardConfig): void {
     if (!config) {
       throw this.createError('Invalid configuration.')
     }
@@ -102,8 +88,6 @@ export class AnimatedWeatherCard extends LitElement {
       throw this.createError('Attribute "forecast_rows" must be greater than 0.')
     }
 
-
-
     if (config.hide_today_section && config.hide_forecast_section) {
       throw this.createError('Attributes "hide_today_section" and "hide_forecast_section" must not enabled at the same time.')
     }
@@ -112,7 +96,7 @@ export class AnimatedWeatherCard extends LitElement {
   }
 
   // https://lit.dev/docs/components/lifecycle/#reactive-update-cycle-performing
-  protected shouldUpdate(changedProps: PropertyValues): boolean {
+  protected shouldUpdate (changedProps: PropertyValues): boolean {
     if (!this.config) {
       return false
     }
@@ -139,67 +123,65 @@ export class AnimatedWeatherCard extends LitElement {
     return hasConfigOrEntityChanged(this, changedProps, false)
   }
 
-  protected updated(changedProps: PropertyValues): void {
-    super.updated(changedProps);
+  protected updated (changedProps: PropertyValues): void {
+    super.updated(changedProps)
     if (changedProps.has('config')) {
-      void this.subscribeForecastEvents();
+      void this.subscribeForecastEvents()
     }
 
     if (changedProps.has('hass') || changedProps.has('config')) {
-      this.updateWeatherVisuals();
+      this.updateWeatherVisuals()
     }
   }
 
-  protected firstUpdated(): void {
-    this.initVisualEngine();
+  protected firstUpdated (): void {
+    this.initVisualEngine()
   }
 
-  private initVisualEngine(): void {
-    const container = this.shadowRoot?.getElementById('weather-container');
-    const bg = this.shadowRoot?.getElementById('bg-canvas') as HTMLCanvasElement;
-    const scene = this.shadowRoot?.getElementById('scene-canvas') as HTMLCanvasElement;
-    const fx = this.shadowRoot?.getElementById('fx-canvas') as HTMLCanvasElement;
+  private initVisualEngine (): void {
+    const container = this.shadowRoot?.getElementById('weather-container')
+    const bg = this.shadowRoot?.getElementById('bg-canvas') as HTMLCanvasElement
+    const scene = this.shadowRoot?.getElementById('scene-canvas') as HTMLCanvasElement
+    const fx = this.shadowRoot?.getElementById('fx-canvas') as HTMLCanvasElement
 
     if (bg && scene && fx && container) {
-      this.visualEngine = new WeatherVisualEngine(bg, scene, fx);
-      this.visualEngine.start();
+      this.visualEngine = new WeatherVisualEngine(bg, scene, fx)
+      this.visualEngine.start()
 
       this.resizeObserver = new ResizeObserver(() => {
         if (this.visualEngine) {
-          const rect = container.getBoundingClientRect();
-          this.visualEngine.resize(rect.width, rect.height);
+          const rect = container.getBoundingClientRect()
+          this.visualEngine.resize(rect.width, rect.height)
         }
-      });
-      this.resizeObserver.observe(container);
+      })
+      this.resizeObserver.observe(container)
 
       // Initial resize
-      const rect = container.getBoundingClientRect();
-      this.visualEngine.resize(rect.width, rect.height);
+      const rect = container.getBoundingClientRect()
+      this.visualEngine.resize(rect.width, rect.height)
 
       // Set initial weather
-      this.updateWeatherVisuals();
+      this.updateWeatherVisuals()
     }
   }
 
-  private updateWeatherVisuals(): void {
-    if (!this.visualEngine || !this.hass || !this.config) return;
+  private updateWeatherVisuals (): void {
+    if (!this.visualEngine || !this.hass || !this.config) return
     try {
-      const weather = this.getWeather();
-      this.visualEngine.setWeather(weather.state);
-      this._lastWeatherState = weather.state;
+      const weather = this.getWeather()
+      this.visualEngine.setWeather(weather.state)
+      this._lastWeatherState = weather.state
     } catch (e) {
       // Weather entity might not be ready
     }
   }
 
   // https://lit.dev/docs/components/rendering/
-  protected render(): TemplateResult {
+  protected render (): TemplateResult {
     if (this.error) {
       return this.error
     }
 
-    const weather = this.getWeather()
-    const state = weather.state
     const showToday = !this.config.hide_today_section
     const showForecast = !this.config.hide_forecast_section
 
@@ -233,8 +215,7 @@ export class AnimatedWeatherCard extends LitElement {
     `
   }
 
-
-  public connectedCallback(): void {
+  public connectedCallback (): void {
     super.connectedCallback()
     if (this.hasUpdated) {
       void this.subscribeForecastEvents()
@@ -252,21 +233,21 @@ export class AnimatedWeatherCard extends LitElement {
     }
   }
 
-  public disconnectedCallback(): void {
+  public disconnectedCallback (): void {
     super.disconnectedCallback()
     void this.unsubscribeForecastEvents()
-    if (this.visualEngine) this.visualEngine.stop();
-    if (this.resizeObserver) this.resizeObserver.disconnect();
+    if (this.visualEngine) this.visualEngine.stop()
+    if (this.resizeObserver) this.resizeObserver.disconnect()
   }
 
-  protected willUpdate(changedProps: PropertyValues): void {
+  protected willUpdate (changedProps: PropertyValues): void {
     super.willUpdate(changedProps)
     if (!this.forecastSubscriber) {
       void this.subscribeForecastEvents()
     }
   }
 
-  private renderToday(): TemplateResult {
+  private renderToday (): TemplateResult {
     const weather = this.getWeather()
     const state = weather.state
     const temp = this.config.show_decimal ? this.getCurrentTemperature() : roundIfNotNull(this.getCurrentTemperature())
@@ -286,7 +267,7 @@ export class AnimatedWeatherCard extends LitElement {
       <animated-weather-card-header>
         <div class="header-left">
           <div class="header-info">
-            <div class="header-title">${this.config.title || 'Météo'}</div>
+            <div class="header-title">${this.config.title ?? 'Météo'}</div>
             <div class="header-status">${weatherString}</div>
           </div>
         </div>
@@ -295,19 +276,21 @@ export class AnimatedWeatherCard extends LitElement {
             <ha-icon icon="mdi:thermometer" class="stat-icon"></ha-icon>
             <div class="stat-value current">${localizedTemp}</div>
           </div>
-          ${today ? html`
+          ${today
+        ? html`
             <div class="weather-stat high-low">
               <span class="high">${localizedHigh}°</span>
               <span class="separator">/</span>
               <span class="low">${localizedLow}°</span>
             </div>
-          ` : ''}
+          `
+        : ''}
         </div>
       </animated-weather-card-header>
     `
   }
 
-  private renderForecast(): TemplateResult[] {
+  private renderForecast (): TemplateResult[] {
     const weather = this.getWeather()
     const currentTemp = this.config.show_decimal ? this.getCurrentTemperature() : roundIfNotNull(this.getCurrentTemperature())
     const maxRowsCount = this.config.forecast_rows
@@ -339,7 +322,7 @@ export class AnimatedWeatherCard extends LitElement {
     return forecasts.map((forecast, i) => safeRender(() => this.renderForecastItem(forecast, minTemp, maxTemp, currentTemp, temperatureUnit, hourly, displayTexts[i], maxColOneChars)))
   }
 
-  private renderForecastItem(forecast: MergedWeatherForecast, _minTemp: number, _maxTemp: number, currentTemp: number | null, _temperatureUnit: TemperatureUnit, hourly: boolean, displayText: string, _maxColOneChars: number): TemplateResult {
+  private renderForecastItem (forecast: MergedWeatherForecast, _minTemp: number, _maxTemp: number, currentTemp: number | null, _temperatureUnit: TemperatureUnit, hourly: boolean, displayText: string, _maxColOneChars: number): TemplateResult {
     const weatherState = forecast.condition === 'pouring' ? 'raindrops' : forecast.condition === 'rainy' ? 'raindrop' : forecast.condition
     const weatherIcon = this.toIcon(weatherState, 'fill', true, 'static')
     const tempUnit = this.getWeather().attributes.temperature_unit
@@ -365,17 +348,17 @@ export class AnimatedWeatherCard extends LitElement {
   }
 
   // https://lit.dev/docs/components/styles/
-  static get styles(): CSSResultGroup {
+  static get styles (): CSSResultGroup {
     return styles
   }
 
-  private handleAction(ev: ActionHandlerEvent): void {
+  private handleAction (ev: ActionHandlerEvent): void {
     if (this.hass && this.config && ev.detail.action) {
       handleAction(this, this.hass, this.config, ev.detail.action)
     }
   }
 
-  private mergeConfig(config: AnimatedWeatherCardConfig): MergedAnimatedWeatherCardConfig {
+  private mergeConfig (config: AnimatedWeatherCardConfig): MergedAnimatedWeatherCardConfig {
     return {
       ...config,
       sun_entity: config.sun_entity ?? 'sun.sun',
@@ -388,14 +371,14 @@ export class AnimatedWeatherCard extends LitElement {
     }
   }
 
-  private toIcon(weatherState: string, type: 'fill' | 'line', forceDay: boolean, kind: 'static' | 'animated'): string {
+  private toIcon (weatherState: string, type: 'fill' | 'line', forceDay: boolean, kind: 'static' | 'animated'): string {
     const daytime = forceDay ? 'day' : this.getSun()?.state === 'below_horizon' ? 'night' : 'day'
     const iconMap = kind === 'animated' ? animatedIcons : staticIcons
     const icon = iconMap[type][weatherState]
     return icon?.[daytime] || icon
   }
 
-  private getWeather(): Weather {
+  private getWeather (): Weather {
     const weather = this.hass.states[this.config.entity] as Weather | undefined
     if (!weather) {
       throw this.createError(`Weather entity "${this.config.entity}" could not be found.`)
@@ -403,7 +386,7 @@ export class AnimatedWeatherCard extends LitElement {
     return weather
   }
 
-  private getCurrentTemperature(): number | null {
+  private getCurrentTemperature (): number | null {
     if (this.config.temperature_sensor) {
       const temperatureSensor = this.hass.states[this.config.temperature_sensor] as TemperatureSensor | undefined
       const temp = temperatureSensor?.state ? parseFloat(temperatureSensor.state) : undefined
@@ -417,7 +400,7 @@ export class AnimatedWeatherCard extends LitElement {
     return this.getWeather().attributes.temperature ?? null
   }
 
-  private getCurrentHumidity(): number | null {
+  private getCurrentHumidity (): number | null {
     if (this.config.humidity_sensor) {
       const humiditySensor = this.hass.states[this.config.humidity_sensor] as HumiditySensor | undefined
       const humid = humiditySensor?.state ? parseFloat(humiditySensor.state) : undefined
@@ -430,7 +413,7 @@ export class AnimatedWeatherCard extends LitElement {
     return this.getWeather().attributes.humidity ?? null
   }
 
-  private getApparentTemperature(): number | null {
+  private getApparentTemperature (): number | null {
     if (this.config.apparent_sensor) {
       const apparentSensor = this.hass.states[this.config.apparent_sensor] as TemperatureSensor | undefined
       const temp = apparentSensor?.state ? parseFloat(apparentSensor.state) : undefined
@@ -442,7 +425,7 @@ export class AnimatedWeatherCard extends LitElement {
     return null
   }
 
-  private getAqi(): number | null {
+  private getAqi (): number | null {
     if (this.config.aqi_sensor) {
       const aqiSensor = this.hass.states[this.config.aqi_sensor] as HassEntity | undefined
       const aqi = aqiSensor?.state ? parseInt(aqiSensor.state) : undefined
@@ -453,7 +436,7 @@ export class AnimatedWeatherCard extends LitElement {
     return null
   }
 
-  private getAqiBackgroundColor(aqi: number | null): string | null {
+  private getAqiBackgroundColor (aqi: number | null): string | null {
     if (aqi == null) {
       return null
     }
@@ -465,7 +448,7 @@ export class AnimatedWeatherCard extends LitElement {
     return '#8B0000'
   }
 
-  private getAqiTextColor(aqi: number | null): string {
+  private getAqiTextColor (aqi: number | null): string {
     // Use black text for light backgrounds (green, yellow, orange) for better readability.
     if (aqi !== null && aqi <= 150) {
       return '#000000'
@@ -474,32 +457,32 @@ export class AnimatedWeatherCard extends LitElement {
     return '#FFFFFF'
   }
 
-  private getSun(): HassEntityBase | undefined {
+  private getSun (): HassEntityBase | undefined {
     return this.hass.states[this.config.sun_entity]
   }
 
-  private getLocale(): string {
+  private getLocale (): string {
     return this.config.locale ?? this.hass.locale.language ?? 'en-GB'
   }
 
-  private toCelsius(temperatueUnit: TemperatureUnit, temperature: number): number {
+  private toCelsius (temperatueUnit: TemperatureUnit, temperature: number): number {
     return temperatueUnit === '°C' ? temperature : Math.round((temperature - 32) * (5 / 9))
   }
 
-  private toFahrenheit(temperatueUnit: TemperatureUnit, temperature: number): number {
+  private toFahrenheit (temperatueUnit: TemperatureUnit, temperature: number): number {
     return temperatueUnit === '°F' ? temperature : Math.round((temperature * 9 / 5) + 32)
   }
 
-  private getConfiguredTemperatureUnit(): TemperatureUnit {
+  private getConfiguredTemperatureUnit (): TemperatureUnit {
     return this.hass.config.unit_system.temperature as TemperatureUnit
   }
 
-  private toConfiguredTempWithUnit(unit: TemperatureUnit, temp: number): string {
+  private toConfiguredTempWithUnit (unit: TemperatureUnit, temp: number): string {
     const convertedTemp = this.toConfiguredTempWithoutUnit(unit, temp)
     return convertedTemp + this.getConfiguredTemperatureUnit()
   }
 
-  private toConfiguredTempWithoutUnit(unit: TemperatureUnit, temp: number): number {
+  private toConfiguredTempWithoutUnit (unit: TemperatureUnit, temp: number): number {
     const configuredUnit = this.getConfiguredTemperatureUnit()
     if (configuredUnit === unit) {
       return temp
@@ -510,11 +493,11 @@ export class AnimatedWeatherCard extends LitElement {
       : this.toCelsius(unit, temp)
   }
 
-  private localize(key: string): string {
+  private localize (key: string): string {
     return localize(key, this.getLocale())
   }
 
-  private mergeForecasts(maxRowsCount: number, hourly: boolean): MergedWeatherForecast[] {
+  private mergeForecasts (maxRowsCount: number, hourly: boolean): MergedWeatherForecast[] {
     const forecasts = this.isLegacyWeather() ? this.getWeather().attributes.forecast ?? [] : this.forecasts ?? []
     const agg = forecasts.reduce<Record<number, WeatherForecast[]>>((forecasts, forecast) => {
       const d = new Date(forecast.datetime)
@@ -535,8 +518,7 @@ export class AnimatedWeatherCard extends LitElement {
       .slice(0, maxRowsCount)
   }
 
-
-  private calculateAverageForecast(forecasts: WeatherForecast[]): MergedWeatherForecast {
+  private calculateAverageForecast (forecasts: WeatherForecast[]): MergedWeatherForecast {
     const minTemps = forecasts.map((f) => f.templow ?? f.temperature ?? this.getCurrentTemperature() ?? 0)
     const minTemp = min(minTemps)
 
@@ -562,7 +544,7 @@ export class AnimatedWeatherCard extends LitElement {
     }
   }
 
-  private async subscribeForecastEvents(): Promise<void> {
+  private async subscribeForecastEvents (): Promise<void> {
     if (this.forecastSubscriberLock) {
       return
     }
@@ -603,7 +585,7 @@ export class AnimatedWeatherCard extends LitElement {
     }
   }
 
-  private async unsubscribeForecastEvents(): Promise<void> {
+  private async unsubscribeForecastEvents (): Promise<void> {
     if (this.forecastSubscriber) {
       try {
         await this.forecastSubscriber()
@@ -615,11 +597,11 @@ export class AnimatedWeatherCard extends LitElement {
     }
   }
 
-  private isLegacyWeather(): boolean {
+  private isLegacyWeather (): boolean {
     return !this.supportsFeature(WeatherEntityFeature.FORECAST_DAILY) && !this.supportsFeature(WeatherEntityFeature.FORECAST_HOURLY)
   }
 
-  private supportsFeature(feature: WeatherEntityFeature): boolean {
+  private supportsFeature (feature: WeatherEntityFeature): boolean {
     try {
       return (this.getWeather().attributes.supported_features & feature) !== 0
     } catch (e) {
@@ -628,7 +610,7 @@ export class AnimatedWeatherCard extends LitElement {
     }
   }
 
-  private createError(errorString: string): Error {
+  private createError (errorString: string): Error {
     const error = new Error(errorString)
     const errorCard = document.createElement('hui-error-card')
     errorCard.setConfig({
@@ -640,7 +622,7 @@ export class AnimatedWeatherCard extends LitElement {
     return error
   }
 
-  private determineForecastType(): 'hourly' | 'daily' | 'hourly_not_supported' {
+  private determineForecastType (): 'hourly' | 'daily' | 'hourly_not_supported' {
     const supportsDaily = this.supportsFeature(WeatherEntityFeature.FORECAST_DAILY)
     const supportsHourly = this.supportsFeature(WeatherEntityFeature.FORECAST_HOURLY)
     const hourly = this.config.hourly_forecast
@@ -659,7 +641,7 @@ export class AnimatedWeatherCard extends LitElement {
     }
   }
 
-  private parseDateTime(date: string): Date {
+  private parseDateTime (date: string): Date {
     return new Date(date)
   }
 }

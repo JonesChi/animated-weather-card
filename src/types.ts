@@ -78,13 +78,13 @@ export class Rgb {
   g: number
   b: number
 
-  constructor(r: number, g: number, b: number) {
+  constructor (r: number, g: number, b: number) {
     this.r = r
     this.g = g
     this.b = b
   }
 
-  toRgbString(): string {
+  toRgbString (): string {
     return `rgb(${this.r}, ${this.g}, ${this.b})`
   }
 }
