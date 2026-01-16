@@ -107,7 +107,7 @@ export class WeatherVisualEngine {
             for (let i = 0; i < 70; i++) this.particles.push(this.createRainDrop(false))
         } else if (['windy', 'windy-variant'].includes(mapped)) {
             for (let i = 0; i < 30; i++) this.particles.push(this.createDebris())
-        } else if (['sunny', 'clear-night'].includes(mapped)) {
+        } else if (['clear-night'].includes(mapped)) {
             for (let i = 0; i < 20; i++) this.particles.push(this.createDust())
         } else if (mapped === 'fog') {
             for (let i = 0; i < 50; i++) this.particles.push(this.createFogParticle())
@@ -292,9 +292,9 @@ export class WeatherVisualEngine {
                 ctx.restore()
             }
 
-            // Clouds for partly cloudy (White/Fluffy)
+            // Clouds for partly cloudy (White/Fluffy) - reduced opacity for text visibility
             if (w === 'partlycloudy') {
-                this.drawSoftClouds(ctx, 'rgba(255, 255, 255, 0.4)')
+                this.drawSoftClouds(ctx, 'rgba(255, 255, 255, 0.3)', 'rgba(255, 255, 255, 0)')
             }
 
             // --- RAINY / DARK ---
@@ -305,7 +305,7 @@ export class WeatherVisualEngine {
             ctx.fillRect(0, 0, this.w, this.h)
 
             // Heavy Dark Clouds
-            this.drawSoftClouds(ctx, 'rgba(30, 30, 40, 0.6)')
+            this.drawSoftClouds(ctx, 'rgba(30, 30, 40, 0.6)', 'rgba(30, 30, 40, 0)')
 
             // --- SNOWY ---
         } else if (['snowy', 'snowy-rainy'].includes(w)) {
@@ -322,7 +322,7 @@ export class WeatherVisualEngine {
             ctx.fillRect(0, 0, this.w, this.h)
 
             // Greyish Clouds
-            this.drawSoftClouds(ctx, 'rgba(240, 240, 255, 0.3)')
+            this.drawSoftClouds(ctx, 'rgba(240, 240, 255, 0.3)', 'rgba(240, 240, 255, 0)')
 
             // --- WINDY ---
         } else if (['windy', 'windy-variant'].includes(w)) {
@@ -330,7 +330,7 @@ export class WeatherVisualEngine {
             grad.addColorStop(1, '#29323c')
             ctx.fillStyle = grad
             ctx.fillRect(0, 0, this.w, this.h)
-            this.drawSoftClouds(ctx, 'rgba(100, 100, 100, 0.4)')
+            this.drawSoftClouds(ctx, 'rgba(100, 100, 100, 0.4)', 'rgba(100, 100, 100, 0)')
 
             // --- FOG ---
         } else if (w === 'fog') {
@@ -345,16 +345,19 @@ export class WeatherVisualEngine {
         }
     }
 
-    private drawSoftClouds(ctx: CanvasRenderingContext2D, colorStyle: string) {
+    private drawSoftClouds(ctx: CanvasRenderingContext2D, colorStart: string, colorEnd: string) {
         ctx.save()
         this.clouds.forEach(c => {
-            const grad = ctx.createRadialGradient(c.x, c.y, 0, c.x, c.y, c.r)
-            grad.addColorStop(0, colorStyle) // Core color
-            grad.addColorStop(1, 'rgba(255,255,255,0)') // Fade to transparent
+            let effectiveRadius = c.r
+            const effectiveY = c.y
+
+            const grad = ctx.createRadialGradient(c.x, effectiveY, 0, c.x, effectiveY, effectiveRadius)
+            grad.addColorStop(0, colorStart) // Core color
+            grad.addColorStop(1, colorEnd) // Fade to transparent
 
             ctx.fillStyle = grad
             ctx.beginPath()
-            ctx.arc(c.x, c.y, c.r, 0, Math.PI * 2)
+            ctx.arc(c.x, effectiveY, effectiveRadius, 0, Math.PI * 2)
             ctx.fill()
         })
         ctx.restore()
