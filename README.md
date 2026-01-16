@@ -1,5 +1,10 @@
 # Animated Weather Card
 
+[![HACS](https://img.shields.io/badge/HACS-Default-41BDF5.svg)](https://github.com/hacs/integration)
+[![Total downloads](https://img.shields.io/github/downloads/joneschi/animated-weather-card/total)](https://github.com/joneschi/animated-weather-card/releases)
+[![Downloads of latest version (latest by SemVer)](https://img.shields.io/github/downloads/joneschi/animated-weather-card/latest/total?sort=semver)](https://github.com/joneschi/animated-weather-card/releases/latest)
+[![Current version](https://img.shields.io/github/v/release/joneschi/animated-weather-card)](https://github.com/joneschi/animated-weather-card/releases/latest)
+
 A [Home Assistant Dashboard Card](https://www.home-assistant.io/dashboards/) available through the [Home Assistant Community Store](https://hacs.xyz)
 featuring beautiful animated weather backgrounds with current conditions and forecast display.
 
