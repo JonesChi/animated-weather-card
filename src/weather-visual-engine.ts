@@ -47,6 +47,7 @@ export class WeatherVisualEngine {
 
   // State
   private weather: WeatherState = 'sunny'
+  private isNight: boolean = false
   private time: number = 0
   private lightning: number = 0
 
@@ -92,12 +93,13 @@ export class WeatherVisualEngine {
     this.draw() // Force redraw
   }
 
-  public setWeather (w: string): void {
+  public setWeather (w: string, isNight: boolean = false): void {
     // Map unknown strings to known types if necessary
     const mapped = w as WeatherState
-    if (this.weather === mapped) return
+    if (this.weather === mapped && this.isNight === isNight) return
 
     this.weather = mapped
+    this.isNight = isNight
     this.particles = []
 
     // Re-init particles based on weather
@@ -271,7 +273,7 @@ export class WeatherVisualEngine {
 
     // --- SUNNY / CLEAR ---
     if (['sunny', 'clear-night', 'partlycloudy'].includes(w)) {
-      const isNight = w === 'clear-night'
+      const isNight = w === 'clear-night' || (w === 'partlycloudy' && this.isNight)
       const sunX = this.w * 0.85
       const sunY = this.h * 0.15
 
