@@ -169,7 +169,8 @@ export class AnimatedWeatherCard extends LitElement {
     if (!this.visualEngine || !this.hass || !this.config) return
     try {
       const weather = this.getWeather()
-      this.visualEngine.setWeather(weather.state)
+      const isNight = this.getSun()?.state === 'below_horizon'
+      this.visualEngine.setWeather(weather.state, isNight)
       this._lastWeatherState = weather.state
     } catch (e) {
       // Weather entity might not be ready
